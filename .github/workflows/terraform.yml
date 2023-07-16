@@ -48,9 +48,12 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: Deployment environment (production/test)
+        description: Deployment environment (prd/dev)
         required: true
-        default: test
+        default: dev
+      project:
+        description: Project name (use two characters)
+        required: true
       deploy:
         description: Deploy the planned resources
         default: "false"
