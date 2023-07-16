@@ -1,3 +1,5 @@
+#This is to include terraform required providers
+
 terraform {
   required_providers {
     azurerm = {
