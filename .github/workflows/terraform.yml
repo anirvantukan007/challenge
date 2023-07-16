@@ -45,18 +45,27 @@
 name: 'Terraform'
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-
-permissions:
-  contents: read
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment (production/test)
+        required: true
+        default: test
+      deploy:
+        description: Deploy the planned resources
+        default: "false"
+        required: true
+      destroy:
+        description: Destroy planed resources
+        default: "false"
+        required: true
+    
 
 jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ github.event.inputs.environment}}
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -89,5 +98,9 @@ jobs:
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
+      if: ${{ github.event.inputs.deploy == 'true'}}
       run: terraform apply -auto-approve -input=false
+
+    - name: Terraform Destroy plan
+      if: ${{ github.event.inputs.destroy == 'true'}}
+      run: terraform destroy -auto-approve -input=false
