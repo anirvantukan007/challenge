@@ -9,5 +9,5 @@ resource "azurerm_resource_group" "main" {
 }
 
 module "storage" {
-  source = "./module/storage"
+  source = "module/storage/"
 }
