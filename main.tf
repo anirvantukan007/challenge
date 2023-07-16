@@ -7,3 +7,7 @@ resource "azurerm_resource_group" "main" {
     environment = "test"
   }
 }
+
+module "storage" {
+  source = "/module/storage"
+}
