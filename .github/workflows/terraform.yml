@@ -51,9 +51,6 @@ on:
         description: Deployment environment (prd/dev)
         required: true
         default: dev
-      project:
-        description: Project name (use two characters)
-        required: true
       deploy:
         description: Deploy the planned resources
         default: "false"
@@ -86,15 +83,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Prepare deployment
-      run: |
-        TF_DIR=./project/${{github.event.inputs.environment}}
-        mkdir -p build/
+    #- name: Prepare deployment
+    #  run: |
+    #    TF_DIR=./project/${{github.event.inputs.environment}}
+    #    mkdir -p build/
 
-        cp -RL ./project/${{github.event.inputs.environment}}.auto.tfvars build/
-        cp -RL ./project/variables.tf build/
+    #    cp -RL ./project/${{github.event.inputs.environment}}.auto.tfvars build/
+    #    cp -RL ./project/variables.tf build/
 
-        cp -RL ${TF_DIR}/* providers.tf build/
+    #    cp -RL ${TF_DIR}/* providers.tf build/
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
