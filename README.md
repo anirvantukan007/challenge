@@ -10,7 +10,7 @@ This part will describe how to run the pipeline in GitHub.
 4. Select deployment environment (test/prd)
 5. To run the plan only keep "Deploy planned resources" as false.
 6. To deploy the resources keep "Deploy planned resources" as true.
-7. To completely remove the resources from Azure portal, make "Destroy planned resources" as true.
+7. To completely remove the resources from Azure portal, make "Deploy planned resources" and "Destroy planned resources" as true.
 
 ## Contact
 For more details please contact me at anirvantukan007@gmail.com
