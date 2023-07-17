@@ -7,6 +7,10 @@ terraform {
       version = ">= 2.0"
     }
   }
+
+  backend "azurerm" {
+    container_name = "tfstate"
+  }
 }
 
 provider "azurerm" {
