@@ -12,4 +12,6 @@ resource "azurerm_storage_blob" "main" {
   storage_container_name = azurerm_storage_container.main.name
   type                   = "Block"
   source_content         = "vm.json"
+
+  depends_on = [azurerm_storage_container.main]
 }

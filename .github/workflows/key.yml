@@ -1,0 +1,145 @@
+# This workflow installs the latest version of Terraform CLI and configures the Terraform CLI configuration file
+# with an API token for Terraform Cloud (app.terraform.io). On pull request events, this workflow will run
+# `terraform init`, `terraform fmt`, and `terraform plan` (speculative plan via Terraform Cloud). On push events
+# to the "main" branch, `terraform apply` will be executed.
+#
+# Documentation for `hashicorp/setup-terraform` is located here: https://github.com/hashicorp/setup-terraform
+#
+# To use this workflow, you will need to complete the following setup steps.
+#
+# 1. Create a `main.tf` file in the root of this repository with the `remote` backend and one or more resources defined.
+#   Example `main.tf`:
+#     # The configuration for the `remote` backend.
+#     terraform {
+#       backend "remote" {
+#         # The name of your Terraform Cloud organization.
+#         organization = "example-organization"
+#
+#         # The name of the Terraform Cloud workspace to store Terraform state files in.
+#         workspaces {
+#           name = "example-workspace"
+#         }
+#       }
+#     }
+#
+#     # An example resource that does nothing.
+#     resource "null_resource" "example" {
+#       triggers = {
+#         value = "A example resource that does nothing!"
+#       }
+#     }
+#
+#
+# 2. Generate a Terraform Cloud user API token and store it as a GitHub secret (e.g. TF_API_TOKEN) on this repository.
+#   Documentation:
+#     - https://www.terraform.io/docs/cloud/users-teams-organizations/api-tokens.html
+#     - https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
+#
+# 3. Reference the GitHub secret in step using the `hashicorp/setup-terraform` GitHub Action.
+#   Example:
+#     - name: Setup Terraform
+#       uses: hashicorp/setup-terraform@v1
+#       with:
+#         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+name: 'Terraform'
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment (prd/dev)
+        required: true
+        default: dev
+      project:
+        description: Project name (only two characters)
+        required: true
+      deploy:
+        description: Deploy the planned resources
+        default: "false"
+        required: true
+      destroy:
+        description: Destroy planed resources
+        default: "false"
+        required: true
+    
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment}}
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Prepare deployment
+      run: |
+        TF_DIR=./project/${{github.event.inputs.project}}
+        mkdir -p build/
+
+        cp -RL ./project/${{github.event.inputs.environment}}.auto.tfvars build/
+        cp -RL ./project/variables.tf build/
+
+        cp -RL ${TF_DIR}/* providers.tf build/
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.SPN }}
+      
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: |
+        TFSTATE_KEY=${{github.event.inputs.project}}.${{github.event.inputs.environment}}.terraform.tfstate
+        STORAGE_ACCOUNT_NAME="stazpubdev"
+        RESOURCE_GROUP_NAME="rg-az-test-pub"
+        echo "Available tfstates"
+        az storage blob list --container-name tfstate --account-name ${STORAGE_ACCOUNT_NAME} --query "[].{name:name, size: properties.contentLength}" --output tsv
+
+        terraform -chdir=build/ init \
+          -backend-config="key=${TFSTATE_KEY}" \
+          -backend-config="storage_account_name=${STORAGE_ACCOUNT_NAME}" \
+          -backend-config="resource_group_name=${RESOURCE_GROUP_NAME}"
+        
+        export TERRAFORM_IMPORT_BASE="terraform -chdir=build/ import -var project=${{github.event.inputs.project}} -var client_secret=none"
+
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      if: ${{ github.event.inputs.destroy == 'false'}}
+      run: terraform -chdir=build/ plan -out=tfplan
+
+      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+
+    - name: Terraform Destroy plan
+      if: ${{ github.event.inputs.destroy == 'true'}}
+      run: terraform -chdir=build/ plan -destroy -out=tfplan
+
+    - name: Terraform Apply
+      if: ${{ github.event.inputs.deploy == 'true'}}
+      run: terraform -chdir=build/ apply tfplan
