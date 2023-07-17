@@ -27,6 +27,7 @@ resource "azurerm_network_interface" "main" {
     subnet_id                     = azurerm_subnet.main.id
     private_ip_address_allocation = "Dynamic"
   }
+  depends_on = [azurerm_subnet.main]
 }
 
 resource "azurerm_windows_virtual_machine" "main" {
@@ -46,9 +47,11 @@ resource "azurerm_windows_virtual_machine" "main" {
   }
 
   source_image_reference {
-    publisher = "MicrosoftWindows"
-    offer     = "Windows10"
-    sku       = "20h2-pro"
+    publisher = "MicrosoftWindowsDesktop"
+    offer     = "Windows-10"
+    sku       = "20h2-evd"
     version   = "latest"
   }
+
+  depends_on = [azurerm_network_interface.main]
 }
