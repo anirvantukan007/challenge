@@ -106,8 +106,8 @@ jobs:
     - name: Terraform Init
       run: |
         TFSTATE_KEY=${{github.event.inputs.project}}.${{github.event.inputs.environment}}.terraform.tfstate
-        STORAGE_ACCOUNT_NAME=""
-        RESOURCE_GROUP_NAME=""
+        STORAGE_ACCOUNT_NAME="stazpubdev"
+        RESOURCE_GROUP_NAME="rg-az-test-pub"
         echo "Available tfstates"
         az storage blob list --container-name tfstate --account-name ${STORAGE_ACCOUNT_NAME} --query "[].{name:name, size: properties.contentlength}" --output tsv
 
