@@ -1,5 +1,5 @@
 project = "am"
 
 tags = {
-    Type = "Challenge"
+    "Type" : "Challenge"
   }
