@@ -15,13 +15,13 @@ data "azurerm_storage_account" "main" {
 
 resource "azurerm_storage_container" "main" {
   name                  = "json"
-  storage_account_name  = azurerm_storage_account.main.name
+  storage_account_name  = data.azurerm_storage_account.main.name
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "main" {
   name                   = "azure_json"
-  storage_account_name   = azurerm_storage_account.main.name
+  storage_account_name   = data.azurerm_storage_account.main.name
   storage_container_name = azurerm_storage_container.main.name
   type                   = "Block"
   source_content         = data.external.vm_json.result
