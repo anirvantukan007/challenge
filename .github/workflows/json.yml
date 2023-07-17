@@ -128,6 +128,9 @@ jobs:
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       run: terraform fmt -check
+      
+    - name: Retrieve VM JSON
+      run: terraform -chdir=build/ show -json > vm.json
 
     # Generates an execution plan for Terraform
     - name: Terraform Plan
@@ -143,6 +146,3 @@ jobs:
     - name: Terraform Apply
       if: ${{ github.event.inputs.deploy == 'true'}}
       run: terraform -chdir=build/ apply tfplan
-    
-    - name: Retrieve VM JSON
-      run: terraform -chdir=build/ show -json > vm.json
