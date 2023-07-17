@@ -4,9 +4,13 @@ variable "location" {
 }
 
 variable "tags" {
-    type = string
+    type = map(string)
 }
 
 variable "env" {
+    type = string
+}
+
+variable "project" {
     type = string
 }
