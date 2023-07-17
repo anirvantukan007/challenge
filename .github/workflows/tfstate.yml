@@ -110,7 +110,14 @@ jobs:
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run: terraform init
+      run: |
+        TFSTATE_KEY=${{github.event.inputs.project}}.${{github.event.inputs.environment}}.terraform.tfstate
+        echo "Available tfstates"
+
+        terraform -chdir=build/ init \
+          -backend-config="key=${TFSTATE_KEY}"
+    
+        export TERRAFORM_IMPORT_BASE="terraform -chdir=build/ import -var project=${{github.event.inputs.project}} -var client_secret=none"
 
 
     # Checks that all Terraform configuration files adhere to a canonical format
