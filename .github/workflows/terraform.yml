@@ -106,10 +106,15 @@ jobs:
     - name: Terraform Init
       run: |
         TFSTATE_KEY=${{github.event.inputs.project}}.${{github.event.inputs.environment}}.terraform.tfstate
+        STORAGE_ACCOUNT_NAME=""
+        RESOURCE_GROUP_NAME=""
         echo "Available tfstates"
+        az storage blob list --container-name tfstate --account-name ${STORAGE_ACCOUNT_NAME} --query "[].{name:name, size: properties.contentlength}" --output tsv
 
         terraform -chdir=build/ init \
           -backend-config="key=${TFSTATE_KEY}" \
+          -backend-config="storage_account_name=${STORAGE_ACCOUNT_NAME}" \
+          -backend-config="resource_group_name=${RESOURCE_GROUP_NAME}"
         
         export TERRAFORM_IMPORT_BASE="terraform -chdir=build/ import -var project=${{github.event.inputs.project}}"
 
