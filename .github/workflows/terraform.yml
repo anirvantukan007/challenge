@@ -122,7 +122,7 @@ jobs:
           -backend-config="storage_account_name=${STORAGE_ACCOUNT_NAME}" \
           -backend-config="resource_group_name=${RESOURCE_GROUP_NAME}"
         
-        export TERRAFORM_IMPORT_BASE="terraform -chdir=build/ import -var project=${{github.event.inputs.project}}"
+        export TERRAFORM_IMPORT_BASE="terraform -chdir=build/ import -var project=${{github.event.inputs.project}} -var client_secret=none"
 
 
     # Checks that all Terraform configuration files adhere to a canonical format
