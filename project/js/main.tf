@@ -11,5 +11,5 @@ resource "azurerm_storage_blob" "main" {
   storage_account_name   = "stazpubdev"
   storage_container_name = azurerm_storage_container.main.name
   type                   = "Block"
-  source_content         = filebase64("vm.json")
+  source_content         = "vm.json"
 }
