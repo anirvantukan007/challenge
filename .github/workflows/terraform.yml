@@ -114,12 +114,14 @@ jobs:
         TFSTATE_KEY=${{github.event.inputs.project}}.${{github.event.inputs.environment}}.terraform.tfstate
         STORAGE_ACCOUNT_NAME="stazpubdev"
         RESOURCE_GROUP_NAME="rg-az-test-pub"
+        ST_ACCESS_KEY=${{secrets.ST_ACCESS_KEY}}
         echo "Available tfstates"
         az storage blob list --container-name tfstate --account-name ${STORAGE_ACCOUNT_NAME} --query "[].{name:name, size: properties.contentLength}" --output tsv
 
         terraform -chdir=build/ init \
           -backend-config="key=${TFSTATE_KEY}" \
           -backend-config="storage_account_name=${STORAGE_ACCOUNT_NAME}" \
+          -backend-config="access_key=${ST_ACCESS_KEY}" \
           -backend-config="resource_group_name=${RESOURCE_GROUP_NAME}"
         
         export TERRAFORM_IMPORT_BASE="terraform -chdir=build/ import -var project=${{github.event.inputs.project}} -var client_secret=none"
