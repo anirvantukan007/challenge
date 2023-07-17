@@ -1,8 +1,8 @@
-varaibales "location" {
+varaibale "location" {
     type = string
     default = "West US"
 }
 
-varaibales "tags" {
+varaibale "tags" {
     type = string
 }
